@@ -8,6 +8,9 @@ class Preferences {
   Preferences(this.prefs);
 
   void saveToken(String? token) async {
+    if (prefs == null) {
+      print("prefs is null");
+    }
     await prefs?.setString(tokenKey, token.orEmpty());
   }
 

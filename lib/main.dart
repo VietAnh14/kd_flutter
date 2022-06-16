@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_kd/router.dart';
-import 'package:flutter_kd/screens/login/login_screen.dart';
+import 'package:flutter_kd/ui/login/login_screen.dart';
 import 'package:flutter_kd/services/preferences.dart';
 import 'package:flutter_kd/services/remote/auth_api.dart';
 import 'package:provider/provider.dart';

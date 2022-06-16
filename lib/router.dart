@@ -1,7 +1,6 @@
-
-import 'package:flutter_kd/screens/login/login_screen.dart';
-import 'package:flutter_kd/screens/login/login_viewmodel.dart';
-import 'package:flutter_kd/screens/product_list/product_screens.dart';
+import 'package:flutter_kd/ui/login/login_screen.dart';
+import 'package:flutter_kd/ui/login/login_viewmodel.dart';
+import 'package:flutter_kd/ui/product_list/product_screens.dart';
 import 'package:provider/provider.dart';
 
 final appRouter = {

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_kd/services/remote/api_const.dart';
+import 'package:flutter_kd/services/remote/api_exception.dart';
 
 import 'model/token_response.dart';
 
@@ -20,8 +21,19 @@ class AuthApi {
       final options = Options(contentType: Headers.formUrlEncodedContentType);
       final result = await dio.post("api/auth/login", data: data, options: options);
       return Token.fromJson(result.data);
-    } catch (e) {
-      return null;
+    } on DioError catch (e) {
+      final response = e.response;
+      if (response == null) {
+        throw ApiException.unknown();
+      }
+      final code = response.statusCode ?? ApiException.unknownCode;
+      final data = response.data as Map<String, dynamic>;
+      final apiEx = ApiException(
+        code: code,
+        message: data['error'],
+        body: e.response?.data.toString()
+      );
+      throw apiEx;
     }
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_kd/screens/login/login_viewmodel.dart';
+import 'package:flutter_kd/services/remote/api_exception.dart';
+import 'package:flutter_kd/ui/DialogHelper.dart';
+import 'package:flutter_kd/ui/login/login_viewmodel.dart';
+import 'package:flutter_kd/utils/string_ext.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
@@ -15,11 +17,39 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   late LoginViewModel loginViewModel;
   var _passwordVisible = true;
-
+  final _dialogHelper = DialogHelper();
 
   @override
   void initState() {
     loginViewModel = context.read();
+    loginViewModel.loading.listen(handleLoading);
+    loginViewModel.error.listen(onError);
+  }
+
+  void onError(Exception exception) {
+    var message = "Somethings went wrong!";
+    if (exception is ApiException) {
+      if (!exception.message.isNullOrEmpty()) {
+        message = exception.message!;
+      }
+    }
+
+    _dialogHelper.hideLoading();
+    DialogHelper.showMessage(context, message);
+  }
+
+  // TODO: resolve dismiss specific dialog
+  void handleLoading(bool isLoading) {
+    if (isLoading) {
+      _dialogHelper.showLoading(context);
+    } else {
+      // _dialogHelper.hideLoading();
+    }
+  }
+
+  @override
+  void dispose() {
+    loginViewModel.dispose();
   }
 
   void togglePasswordVisible() {
@@ -40,8 +70,14 @@ class _LoginScreenState extends State<LoginScreen> {
           const Expanded(
             flex: 1,
             child: Center(
-                child: Text("KD"),
-
+                child: Text(
+                  "KD",
+                  style: TextStyle(
+                  fontSize: 50,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
+                ),
             ),
           ),
           Expanded(
@@ -79,6 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextButton(
                       onPressed: loginViewModel.login,
                       style: TextButton.styleFrom(
+                        minimumSize: Size(double.infinity, 60),
                         primary: isValid ? Colors.blue : Colors.grey,
                         backgroundColor: isValid ? Colors.blue : Colors.grey,
                       ),
