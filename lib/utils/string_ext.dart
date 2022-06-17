@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 extension StringX on String? {
 
   String orEmpty() {
@@ -7,5 +9,25 @@ extension StringX on String? {
 
   bool isNullOrEmpty() {
     return this == null || this!.isEmpty;
+  }
+
+  Map<String, dynamic>? asJson() {
+    if (this == null) {
+      return null;
+    }
+
+    try {
+      return jsonDecode(this!);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  String? asBearerToken() {
+    if (this == null) {
+      return null;
+    }
+
+    return "Bearer $this";
   }
 }

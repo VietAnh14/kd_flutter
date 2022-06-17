@@ -12,3 +12,7 @@ class ApiException implements Exception {
     return const ApiException(code: unknownCode);
   }
 }
+
+class AuthorizationException implements Exception {
+
+}

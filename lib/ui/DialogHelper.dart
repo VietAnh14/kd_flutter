@@ -17,13 +17,13 @@ class DialogHelper {
 
   void hideLoading() {
     if (_dialogContext != null) {
-      print(_dialogContext.toString());
       Navigator.of(_dialogContext!, rootNavigator: true).pop();
+      _dialogContext = null;
     }
   }
 
-  static void showMessage(BuildContext context, String message) {
-    showDialog(context: context, builder: (dialogContext) => AlertDialog(
+  static Future<dynamic> showMessage(BuildContext context, String message) {
+    return showDialog(context: context, builder: (dialogContext) => AlertDialog(
       title: Text("Message"),
       content: Text(message),
       actions: [

@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_kd/services/remote/auth_api.dart';
+import 'package:flutter_kd/ui/auth/login_event.dart';
+import 'package:flutter_kd/utils/exception.dart';
 
 import '../../services/preferences.dart';
 import 'dart:async';
 
-class LoginViewModel extends ChangeNotifier {
+class AuthViewModel extends ChangeNotifier {
   final AuthApi authApi;
   final Preferences prefs;
 
   String _email = "";
   String _password = "";
   bool isValid = false;
-  final _errorStream = StreamController<Exception>();
-  Stream<Exception> get error => _errorStream.stream;
+
+  final _errorStream = StreamController<dynamic>();
+  Stream<dynamic> get error => _errorStream.stream;
   final _loadingStream = StreamController<bool>();
   Stream<bool> get loading => _loadingStream.stream;
+  final _eventStream = StreamController<AuthEvent>();
+  Stream<AuthEvent> get event => _eventStream.stream;
 
-  LoginViewModel(this.authApi, this.prefs);
+  AuthViewModel(this.authApi, this.prefs);
 
   void onEmailChange(String email) {
     _email = email;
@@ -37,20 +42,35 @@ class LoginViewModel extends ChangeNotifier {
   void login() async {
     try {
       setLoading(true);
-      prefs.saveToken(null);
       final tokenData = await authApi.login(_email, _password);
-      final token = tokenData?.token;
-      if (token?.isEmpty == false) {
-        prefs.saveToken(token!);
+      final token = tokenData.token;
+      if (token.isEmpty == false) {
+        prefs.saveToken(token);
       }
-    } on Exception catch(e) {
-      sendError(e);
-    } finally {
       setLoading(false);
+      _eventStream.add(LoginSuccess());
+    } catch (e) {
+      setLoading(false);
+      sendError(e);
     }
   }
 
-  void sendError(Exception exception) {
+  void signup() async {
+    try {
+      setLoading(true);
+      final authResponse = await authApi.signUp(_email, _password);
+      if (authResponse.success != true) {
+        throw IllegalStateException();
+      }
+      _eventStream.add(SignUpSuccess());
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+      _eventStream.add(AuthCallFail());
+    }
+  }
+
+  void sendError(dynamic exception) {
     _errorStream.add(exception);
   }
 

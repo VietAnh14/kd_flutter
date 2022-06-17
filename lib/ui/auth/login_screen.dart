@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_kd/services/remote/api_exception.dart';
 import 'package:flutter_kd/ui/DialogHelper.dart';
-import 'package:flutter_kd/ui/login/login_viewmodel.dart';
+import 'package:flutter_kd/ui/auth/login_event.dart';
+import 'package:flutter_kd/ui/auth/widget/primary_btn.dart';
+import 'package:flutter_kd/ui/auth/signup_screen.dart';
+import 'package:flutter_kd/ui/auth/widget/password_text_field.dart';
+import 'package:flutter_kd/ui/product_list/product_screens.dart';
 import 'package:flutter_kd/utils/string_ext.dart';
 import 'package:provider/provider.dart';
 
+import '../auth/auth_view_model.dart';
+
 class LoginScreen extends StatefulWidget {
-  static const routeName = '/login';
+  static const routeName = '/auth';
 
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -15,18 +21,25 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  late LoginViewModel loginViewModel;
+  late AuthViewModel authViewModel;
   var _passwordVisible = true;
   final _dialogHelper = DialogHelper();
 
   @override
   void initState() {
-    loginViewModel = context.read();
-    loginViewModel.loading.listen(handleLoading);
-    loginViewModel.error.listen(onError);
+    authViewModel = context.read();
+    authViewModel.loading.listen(handleLoading);
+    authViewModel.error.listen(onError);
+    authViewModel.event.listen(onNewEvent);
   }
 
-  void onError(Exception exception) {
+  void onNewEvent(AuthEvent event) {
+    if (event is LoginSuccess) {
+      Navigator.pushReplacementNamed(context, ProductListScreen.routeName);
+    }
+  }
+
+  void onError(dynamic exception) {
     var message = "Somethings went wrong!";
     if (exception is ApiException) {
       if (!exception.message.isNullOrEmpty()) {
@@ -34,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
 
-    _dialogHelper.hideLoading();
     DialogHelper.showMessage(context, message);
   }
 
@@ -43,13 +55,21 @@ class _LoginScreenState extends State<LoginScreen> {
     if (isLoading) {
       _dialogHelper.showLoading(context);
     } else {
-      // _dialogHelper.hideLoading();
+      _dialogHelper.hideLoading();
     }
+  }
+
+
+  @override
+  void didChangeDependencies() {
+    print("did change dependencies");
   }
 
   @override
   void dispose() {
-    loginViewModel.dispose();
+    print("dispose");
+    authViewModel.dispose();
+    super.dispose();
   }
 
   void togglePasswordVisible() {
@@ -60,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isValid = context.select((LoginViewModel viewModel) => viewModel.isValid);
+    final isValid = context.select((AuthViewModel viewModel) => viewModel.isValid);
     return Scaffold(
       appBar: AppBar(
         title: Text("Login"),
@@ -92,38 +112,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         hintText: "example@gmail.com",
                         border: OutlineInputBorder(),
                       ),
-                      onChanged: loginViewModel.onEmailChange,
+                      onChanged: authViewModel.onEmailChange,
                     ),
                     SizedBox(height: 10,),
-                    TextFormField(
-                      obscureText: _passwordVisible,
-                      decoration: InputDecoration(
-                        labelText: "Password",
-                        border: OutlineInputBorder(),
-                        suffixIcon: GestureDetector(
-                          onTap: () {
-                            togglePasswordVisible();
-                          },
-                          child: Icon(_passwordVisible
-                              ? Icons.visibility_off
-                              : Icons.visibility),
-                        ),
-                      ),
-                      onChanged: loginViewModel.onPaswordChange,
-                    ),
-                    SizedBox(height: 20,),
-                    TextButton(
-                      onPressed: loginViewModel.login,
-                      style: TextButton.styleFrom(
-                        minimumSize: Size(double.infinity, 60),
-                        primary: isValid ? Colors.blue : Colors.grey,
-                        backgroundColor: isValid ? Colors.blue : Colors.grey,
-                      ),
-                      child: Text(
-                        "Login",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    )
+                    PasswordTextField(onChange: authViewModel.onPaswordChange,),
+                    SizedBox(height: 10,),
+                    PrimaryButton(label: "Login", isEnable: isValid, onTap: authViewModel.login,),
+                    SizedBox(height: 10,),
+                    PrimaryButton(label: "SignUp", isEnable: true, onTap: () {
+                      Navigator.pushReplacementNamed(context, SignUpScreen.routName);
+                    },),
                   ],
                 ),
               ),

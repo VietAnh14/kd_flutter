@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 class Product {
   int id;
   String? image;
@@ -30,5 +32,10 @@ class Product {
       status: json['status'],
       unit: json['unit'],
     );
+  }
+
+  static List<Product> fromJsonList(String json) {
+    final List list = jsonDecode(json);
+    return list.map((e) => Product.fromJson(e)).toList();
   }
 }
