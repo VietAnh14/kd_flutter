@@ -1,10 +1,10 @@
 import 'dart:io';
 
-class NetworkError implements IOException {
+abstract class NetworkError implements IOException {
 
 }
 
-class ApiException implements Exception {
+class ApiException implements NetworkError {
   static const unknownCode = -1;
 
   final String? message;
@@ -17,6 +17,14 @@ class ApiException implements Exception {
   }
 }
 
-class AuthorizationException implements Exception {
+class AuthorizationException implements NetworkError {
+
+}
+
+class UnknownNetworkException implements NetworkError {
+
+}
+
+class UnreachableException implements NetworkError {
 
 }

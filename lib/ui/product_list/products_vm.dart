@@ -1,4 +1,4 @@
-
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_kd/services/remote/model/product.dart';
 import 'package:flutter_kd/services/remote/product_api.dart';
@@ -6,7 +6,10 @@ import 'package:flutter_kd/services/remote/product_api.dart';
 class ProductVM extends ChangeNotifier {
   final ProductApi api;
   var products = List<Product>.empty(growable: true);
-  var isLoading = false;
+  bool isLoading = false;
+  bool isDispose = false;
+  CancelableOperation? searchOperation;
+
   ProductVM(this.api) {
     getProductList();
   }
@@ -24,8 +27,32 @@ class ProductVM extends ChangeNotifier {
     }
   }
 
-  void searchProduct(String query) {
+  void onQueryChange(String query) {
+    searchOperation?.cancel();
+    searchOperation = CancelableOperation.fromFuture(Future.delayed(Duration(seconds: 1)))
+        .then((aVoid) => searchProduct(query));
+  }
 
+  Future<void> searchProduct(String query) async {
+    try {
+      _setIsLoading(true);
+      final product = await api.searchProduct(query);
+      products = [product];
+      _setIsLoading(false);
+    } catch (err) {
+      _setIsLoading(false);
+      products = [];
+      print("Search err $err");
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  @override
+  void notifyListeners() {
+    if (!isDispose) {
+      super.notifyListeners();
+    }
   }
 
   void _setIsLoading(bool reload) {
@@ -35,6 +62,7 @@ class ProductVM extends ChangeNotifier {
 
   @override
   void dispose() {
+    isDispose = true;
     super.dispose();
   }
 }

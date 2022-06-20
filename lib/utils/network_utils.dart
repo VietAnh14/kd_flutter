@@ -15,8 +15,10 @@ extension DioEx on DioError {
         message = messageExtractor?.call(response?.data);
       } catch (e) { }
       return ApiException(code: code, message: message);
+    } else if (type == DioErrorType.other) {
+      return UnknownNetworkException();
+    } else {
+      return UnreachableException();
     }
-
-    return NetworkError();
   }
 }

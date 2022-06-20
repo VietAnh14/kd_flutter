@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_kd/ui/product_detail_screen.dart';
 import 'package:flutter_kd/ui/product_list/products_vm.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
@@ -11,16 +12,43 @@ class SearchAppBar extends AppBar {
 
 class _SearchAppBarState extends State<SearchAppBar> {
   bool isExpand = false;
-  final textEditingController = TextEditingController();
+  late FocusNode focusNode;
+  late TextEditingController textEditingController;
+
+
+  @override
+  void initState() {
+    super.initState();
+    focusNode = FocusNode();
+    textEditingController = TextEditingController();
+  }
+
+
+  @override
+  void dispose() {
+    super.dispose();
+    focusNode.dispose();
+    textEditingController.dispose();
+  }
 
   void toggleExpand() {
     setState(() {
       isExpand = !isExpand;
+      textEditingController.clear();
+      if (isExpand) {
+        focusNode.requestFocus();
+      } else {
+        reload();
+      }
     });
   }
 
   void reload() {
     context.read<ProductVM>().getProductList();
+  }
+
+  void toProductDetail() {
+    Navigator.pushNamed(context, ProductDetailScreen.routeName, arguments: null);
   }
 
   List<Widget> getActions() {
@@ -29,18 +57,21 @@ class _SearchAppBarState extends State<SearchAppBar> {
     } else {
       return [
         IconButton(onPressed: toggleExpand, icon: Icon(Icons.search)),
-        IconButton(onPressed: reload, icon: Icon(Icons.refresh))
+        IconButton(onPressed: reload, icon: Icon(Icons.refresh)),
+        IconButton(onPressed: toProductDetail, icon: Icon(Icons.add)),
       ];
     }
   }
 
-  Widget _getSearchView() {
+  Widget _getSearchView(BuildContext context) {
     return TextField(
       style: TextStyle(
         color: Colors.white,
       ),
+      onChanged: context.read<ProductVM>().onQueryChange,
       cursorColor: Colors.redAccent,
       controller: textEditingController,
+      focusNode: focusNode,
       autofocus: false,
       decoration: const InputDecoration(
         border: InputBorder.none,
@@ -54,7 +85,7 @@ class _SearchAppBarState extends State<SearchAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: isExpand ? _getSearchView() : Text("Products"),
+      title: isExpand ? _getSearchView(context) : Text("Products"),
       actions: getActions()
     );
   }

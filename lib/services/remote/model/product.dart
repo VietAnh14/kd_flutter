@@ -4,7 +4,7 @@ import 'dart:convert';
 class Product {
   int id;
   String? image;
-  int price;
+  double price;
   String productName;
   int quantity;
   String sku;
@@ -21,6 +21,10 @@ class Product {
     required this.status,
     required this.unit,
   });
+
+  factory Product.empty() {
+    return Product(id: -1, quantity: 0, price: 0, productName: "", sku: "", status: -1, unit: "");
+  }
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
