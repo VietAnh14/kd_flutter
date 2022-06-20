@@ -1,18 +1,22 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_kd/ui/auth/auth_view_model.dart';
 import 'package:flutter_kd/ui/auth/login_screen.dart';
 import 'package:flutter_kd/ui/auth/signup_screen.dart';
 import 'package:flutter_kd/ui/product_list/product_screens.dart';
+import 'package:flutter_kd/ui/product_list/products_vm.dart';
 import 'package:provider/provider.dart';
 
-final appRouter = {
-  LoginScreen.routeName: (context) => ChangeNotifierProvider(
+Map<String, Widget Function(BuildContext)> appRouter = {
+  LoginScreen.routeName: (_) => ChangeNotifierProvider(
         create: (context) => AuthViewModel(context.read(), context.read()),
-        child: LoginScreen(),
+        child: const LoginScreen(),
       ),
   SignUpScreen.routName: (context) => ChangeNotifierProvider(
         create: (context) => AuthViewModel(context.read(), context.read()),
-        child: SignUpScreen(),
+        child: const SignUpScreen(),
       ),
-
-  ProductListScreen.routeName: (context) => ProductListScreen(),
+  ProductListScreen.routeName: (context) => ChangeNotifierProvider(
+        create: (context) => ProductVM(context.read()),
+        child: const ProductListScreen(),
+      ),
 };

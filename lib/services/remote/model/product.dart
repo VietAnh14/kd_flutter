@@ -34,8 +34,7 @@ class Product {
     );
   }
 
-  static List<Product> fromJsonList(String json) {
-    final List list = jsonDecode(json);
-    return list.map((e) => Product.fromJson(e)).toList();
+  static List<Product> fromJsonList(List products) {
+    return products.map((e) => Product.fromJson(e)).toList();
   }
 }

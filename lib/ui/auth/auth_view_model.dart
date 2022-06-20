@@ -14,11 +14,11 @@ class AuthViewModel extends ChangeNotifier {
   String _password = "";
   bool isValid = false;
 
-  final _errorStream = StreamController<dynamic>();
+  final _errorStream = StreamController<dynamic>.broadcast();
   Stream<dynamic> get error => _errorStream.stream;
-  final _loadingStream = StreamController<bool>();
+  final _loadingStream = StreamController<bool>.broadcast();
   Stream<bool> get loading => _loadingStream.stream;
-  final _eventStream = StreamController<AuthEvent>();
+  final _eventStream = StreamController<AuthEvent>.broadcast();
   Stream<AuthEvent> get event => _eventStream.stream;
 
   AuthViewModel(this.authApi, this.prefs);
@@ -78,8 +78,11 @@ class AuthViewModel extends ChangeNotifier {
     _loadingStream.add(loading);
   }
 
+  @override
   void dispose() {
+    print("vm dispose");
     _loadingStream.close();
     _errorStream.close();
+    super.dispose();
   }
 }

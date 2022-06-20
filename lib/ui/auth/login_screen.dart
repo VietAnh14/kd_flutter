@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 import '../auth/auth_view_model.dart';
 
 class LoginScreen extends StatefulWidget {
-  static const routeName = '/auth';
+  static const routeName = '/login';
 
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -65,12 +65,6 @@ class _LoginScreenState extends State<LoginScreen> {
     print("did change dependencies");
   }
 
-  @override
-  void dispose() {
-    print("dispose");
-    authViewModel.dispose();
-    super.dispose();
-  }
 
   void togglePasswordVisible() {
     setState(() {

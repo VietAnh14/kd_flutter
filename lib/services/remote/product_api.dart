@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_kd/services/remote/api_const.dart';
 import 'package:flutter_kd/services/remote/api_exception.dart';
 import 'package:flutter_kd/services/remote/model/product.dart';
+import 'package:flutter_kd/utils/network_utils.dart';
 import 'package:flutter_kd/utils/string_ext.dart';
 
 import '../preferences.dart';
@@ -9,7 +10,8 @@ import '../preferences.dart';
 class ProductApi {
   final _dio = Dio();
   final Preferences preferences;
-  ProductApi({ required this.preferences }) {
+  ProductApi(this.preferences) {
+    _dio.interceptors.add(LogInterceptor(responseBody: true, requestBody: true));
     _dio.options.baseUrl = ApiConst.baseUrl;
   }
 
@@ -30,17 +32,7 @@ class ProductApi {
       final products = Product.fromJsonList(response.data);
       return products;
     } on DioError catch (e) {
-      final response = e.response;
-      if (response == null) {
-        throw ApiException.unknown();
-      }
-      final code = response.statusCode ?? ApiException.unknownCode;
-      final data = response.data.toString();
-      final apiEx = ApiException(
-          code: code,
-          body: data
-      );
-      throw apiEx;
+      throw e.toNetworkError(null);
     }
   }
 }
