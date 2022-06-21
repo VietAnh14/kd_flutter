@@ -1,96 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_kd/ui/product_detail_screen.dart';
-import 'package:flutter_kd/ui/product_list/products_vm.dart';
+import 'package:flutter_kd/services/remote/model/product.dart';
+import 'package:flutter_kd/ui/base/base_stateful.dart';
+import 'package:flutter_kd/ui/details/product_detail_screen.dart';
+import 'package:flutter_kd/ui/products/products_vm.dart';
+import 'package:flutter_kd/ui/products/search_appbar.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
-
-class SearchAppBar extends AppBar {
-
-  @override
-  State<SearchAppBar> createState() => _SearchAppBarState();
-}
-
-class _SearchAppBarState extends State<SearchAppBar> {
-  bool isExpand = false;
-  late FocusNode focusNode;
-  late TextEditingController textEditingController;
-
-
-  @override
-  void initState() {
-    super.initState();
-    focusNode = FocusNode();
-    textEditingController = TextEditingController();
-  }
-
-
-  @override
-  void dispose() {
-    super.dispose();
-    focusNode.dispose();
-    textEditingController.dispose();
-  }
-
-  void toggleExpand() {
-    setState(() {
-      isExpand = !isExpand;
-      textEditingController.clear();
-      if (isExpand) {
-        focusNode.requestFocus();
-      } else {
-        reload();
-      }
-    });
-  }
-
-  void reload() {
-    context.read<ProductVM>().getProductList();
-  }
-
-  void toProductDetail() {
-    Navigator.pushNamed(context, ProductDetailScreen.routeName, arguments: null);
-  }
-
-  List<Widget> getActions() {
-    if (isExpand) {
-      return [IconButton(onPressed: toggleExpand, icon: Icon(Icons.close))];
-    } else {
-      return [
-        IconButton(onPressed: toggleExpand, icon: Icon(Icons.search)),
-        IconButton(onPressed: reload, icon: Icon(Icons.refresh)),
-        IconButton(onPressed: toProductDetail, icon: Icon(Icons.add)),
-      ];
-    }
-  }
-
-  Widget _getSearchView(BuildContext context) {
-    return TextField(
-      style: TextStyle(
-        color: Colors.white,
-      ),
-      onChanged: context.read<ProductVM>().onQueryChange,
-      cursorColor: Colors.redAccent,
-      controller: textEditingController,
-      focusNode: focusNode,
-      autofocus: false,
-      decoration: const InputDecoration(
-        border: InputBorder.none,
-        prefixIcon: Icon(Icons.search, color: Colors.white,),
-        hintText: "Search",
-        hintStyle: TextStyle(color: Colors.white),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      title: isExpand ? _getSearchView(context) : Text("Products"),
-      actions: getActions()
-    );
-  }
-}
-
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({Key? key}) : super(key: key);
@@ -104,19 +19,30 @@ class ProductListScreen extends StatefulWidget {
   State<ProductListScreen> createState() => _ProductListScreenState();
 }
 
-class _ProductListScreenState extends State<ProductListScreen> {
+class _ProductListScreenState extends BaseStateful<ProductListScreen> {
   var isSearching = false;
   late ProductVM productVM;
 
   @override
   void initState() {
     productVM = context.read();
+    productVM.error.listen(handleError);
+    productVM.event.listen(onNewEvent);
+  }
+
+  void toAddOrEditProduct(Product? product) async {
+    final result = await Navigator.pushNamed(context, ProductDetailScreen.routeName, arguments: product) as bool?;
+    if (result == true) {
+      productVM.getProductList();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SearchAppBar(),
+      appBar: SearchAppBar(
+        onAddClick: () => toAddOrEditProduct(null),
+      ),
       body: _buildBody(context),
     );
   }
@@ -152,6 +78,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final product = productVM.products[index];
     return GestureDetector(
       onLongPress: () => productVM.deleteProduct(product.sku),
+      onTap: () => toAddOrEditProduct(product),
       child: Container(
         decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: Colors.black54))

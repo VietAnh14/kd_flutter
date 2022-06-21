@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_kd/services/remote/api_exception.dart';
-import 'package:flutter_kd/ui/DialogHelper.dart';
-import 'package:flutter_kd/ui/product_detail_event.dart';
-import 'package:flutter_kd/ui/product_detail_vm.dart';
+import 'package:flutter_kd/ui/base/base_stateful.dart';
+import 'package:flutter_kd/ui/details/product_detail_vm.dart';
+import 'package:flutter_kd/ui/event.dart';
+import 'package:flutter_kd/utils/DialogHelper.dart';
+import 'package:flutter_kd/ui/details/product_detail_event.dart';
 import 'package:provider/provider.dart';
 
-import '../services/remote/model/product.dart';
+import '../../services/remote/model/product.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({Key? key}) : super(key: key);
@@ -24,17 +25,9 @@ class ProductDetailScreen extends StatefulWidget {
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
-class _ProductDetailScreenState extends State<ProductDetailScreen> {
+class _ProductDetailScreenState extends BaseStateful<ProductDetailScreen> {
   late ProductDetailVM productDetailVM;
   late DialogHelper dialogHelper;
-
-  NavigatorState? getNavigator() {
-    if (mounted) {
-      return Navigator.of(context);
-    } else {
-      return null;
-    }
-  }
 
   @override
   void initState() {
@@ -42,31 +35,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     dialogHelper = DialogHelper();
     productDetailVM = context.read();
     productDetailVM.event.listen(onNewEvent);
-    productDetailVM.error.listen(onError);
+    productDetailVM.error.listen(handleError);
   }
 
-  void onError(dynamic err) {
-    var message = "Sth went wrong! ${err.runtimeType}";
-    if (err is ApiException) {
-      message = err.message ?? message;
-    }
-    DialogHelper.showMessage(context, message);
-  }
-
-  void onNewEvent(ProductDetailEvent event) async {
+  @override
+  void onNewEvent(Event event) async {
     if (event is AddProductSuccessEvent) {
       await DialogHelper.showMessage(context, "Add product success");
-      getNavigator()?.pop();
-    } else if (event is EditProductSuccessEvent) {
-
+      getNav()?.pop(true);
+    } else if (event is UpdateProductSuccessEvent) {
+      await DialogHelper.showMessage(context, "Update product success");
+      getNav()?.pop(true);
     } else {
-      DialogHelper.showMessage(context, "Unknown event ${event.runtimeType.toString()}");
+      super.onNewEvent(event);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEdit = context.select((ProductDetailVM value) => value.isEditing);
+    final isAdding = context.select((ProductDetailVM value) => value.isAdding);
     final isValid = context.select((ProductDetailVM value) => !value.isLoading && value.isValid);
     return Scaffold(
       appBar: AppBar(title: Text("Product details"),),
@@ -79,6 +66,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 Expanded(
                   child: TextFormField(
                     initialValue: context.select((ProductDetailVM value) => value.product.sku),
+                    enabled: isAdding,
                     onChanged: productDetailVM.skuChange,
                     decoration: const InputDecoration(
                       labelText: "Sku",
@@ -160,8 +148,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ],
             ),
             ElevatedButton(
-                onPressed: isValid ? productDetailVM.addProduct : null,
-                child: Text(isEdit ? "Edit" : "Add"),
+                onPressed: isValid ? productDetailVM.onActionClick : null,
+                child: Text(isAdding ? "Add" : "Edit"),
             )
           ],
         ),

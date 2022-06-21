@@ -1,13 +1,14 @@
+import 'dart:async';
+
 import 'package:async/async.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_kd/services/remote/model/product.dart';
 import 'package:flutter_kd/services/remote/product_api.dart';
+import 'package:flutter_kd/ui/base/base_vm.dart';
 
-class ProductVM extends ChangeNotifier {
+class ProductVM extends BaseVM {
   final ProductApi api;
   var products = List<Product>.empty(growable: true);
   bool isLoading = false;
-  bool isDispose = false;
   CancelableOperation? searchOperation;
 
   ProductVM(this.api) {
@@ -15,16 +16,12 @@ class ProductVM extends ChangeNotifier {
   }
 
   void getProductList() async {
-    try {
+    safeCall(block: () async {
       _setIsLoading(true);
-      await Future.delayed(const Duration(seconds: 4));
+      await Future.delayed(const Duration(seconds: 2));
       products = await api.getProductList();
       _setIsLoading(false);
-      notifyListeners();
-    } catch (e) {
-      _setIsLoading(false);
-      print(e);
-    }
+    }, onFinally: notifyListeners, onError: onError);
   }
 
   void onQueryChange(String query) {
@@ -33,48 +30,42 @@ class ProductVM extends ChangeNotifier {
         .then((aVoid) => searchProduct(query));
   }
 
-  Future<void> searchProduct(String query) async {
-    try {
+  void searchProduct(String query) {
+    safeCall(block: () async {
       _setIsLoading(true);
       final product = await api.searchProduct(query);
       products = [product];
       _setIsLoading(false);
-    } catch (err) {
-      _setIsLoading(false);
+    }, onError: (err, stack) {
       products = [];
-      print("Search err $err");
-    } finally {
+      _setIsLoading(false);
+    }, onFinally: () {
       notifyListeners();
-    }
+    });
   }
 
   void deleteProduct(String sku) async {
-    try {
-      _setIsLoading(true);
-      final product = await api.deleteProduct(sku);
-      products.removeWhere((element) => element.sku == product.sku);
-      _setIsLoading(false);
-    } catch (err, stack) {
-      _setIsLoading(false);
-      print(stack);
-    }
+    safeCall(
+          block: () async {
+            _setIsLoading(true);
+            final product = await api.deleteProduct(sku);
+            products.removeWhere((element) => element.sku == product.sku);
+            _setIsLoading(false);
+            },
+          onError: onError,
+          onFinally: () {
+            notifyListeners();
+          }
+        );
   }
 
-  @override
-  void notifyListeners() {
-    if (!isDispose) {
-      super.notifyListeners();
-    }
+  void onError(err, stack) {
+    _setIsLoading(false);
+    sendError(err, stack);
   }
 
   void _setIsLoading(bool reload) {
     isLoading = reload;
     notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    isDispose = true;
-    super.dispose();
   }
 }

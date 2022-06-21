@@ -3,29 +3,32 @@ import 'package:flutter_kd/router.dart';
 import 'package:flutter_kd/services/preferences.dart';
 import 'package:flutter_kd/services/remote/auth_api.dart';
 import 'package:flutter_kd/services/remote/product_api.dart';
-import 'package:flutter_kd/ui/auth/auth_view_model.dart';
-import 'package:flutter_kd/ui/auth/login_screen.dart';
-import 'package:flutter_kd/ui/product_list/product_screens.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_kd/ui/screens.dart';
 
-void main() {
-  runApp(const KdApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final preferences = Preferences();
+  await preferences.init();
+  runApp(KdApp(preferences: preferences,));
 }
 
 class KdApp extends StatelessWidget {
-  const KdApp({Key? key}) : super(key: key);
+  final Preferences preferences;
+  const KdApp({Key? key, required this.preferences}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      //TODO: Wait for preferences to complete init
       providers: [
-        Provider(create: (context) => Preferences()),
+        Provider.value(value: preferences),
         Provider(create: (context) => AuthApi()),
         Provider(create: (context) => ProductApi(context.read())),
       ],
+      //https://api.flutter.dev/flutter/material/MaterialApp/initialRoute.html
+      //Even if the route was just /a, the app would start with / and /a loaded
       child: MaterialApp(
-        initialRoute: LoginScreen.routeName,
+        initialRoute: preferences.isAuth ? ProductListScreen.routeName : LoginScreen.routeName,
         onGenerateRoute: generateRoute,
       ),
     );

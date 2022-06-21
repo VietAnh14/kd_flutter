@@ -1,7 +1,12 @@
 import 'dart:io';
 
-abstract class NetworkError implements IOException {
+import 'package:flutter_kd/utils/exception.dart';
 
+abstract class NetworkError implements IOException {
+  factory NetworkError.unknown() => UnknownNetworkException();
+  factory NetworkError.api(int code, String? message) => ApiException(code: code, message: message);
+  factory NetworkError.unReachable() => UnreachableException();
+  factory NetworkError.authorization() => AuthorizationException();
 }
 
 class ApiException implements NetworkError {
@@ -17,7 +22,7 @@ class ApiException implements NetworkError {
   }
 }
 
-class AuthorizationException implements NetworkError {
+class AuthorizationException implements ResolvableException, NetworkError {
 
 }
 

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_kd/services/remote/api_exception.dart';
-import 'package:flutter_kd/ui/DialogHelper.dart';
+import 'package:flutter_kd/ui/products/product_screens.dart';
+import 'package:flutter_kd/utils/DialogHelper.dart';
 import 'package:flutter_kd/ui/auth/login_event.dart';
 import 'package:flutter_kd/ui/auth/widget/primary_btn.dart';
 import 'package:flutter_kd/ui/auth/signup_screen.dart';
 import 'package:flutter_kd/ui/auth/widget/password_text_field.dart';
-import 'package:flutter_kd/ui/product_list/product_screens.dart';
 import 'package:flutter_kd/utils/string_ext.dart';
 import 'package:provider/provider.dart';
 

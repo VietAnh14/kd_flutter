@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_kd/ui/DialogHelper.dart';
+import 'package:flutter_kd/utils/DialogHelper.dart';
 import 'package:flutter_kd/ui/auth/login_event.dart';
 import 'package:flutter_kd/ui/auth/login_screen.dart';
 import 'package:flutter_kd/ui/auth/widget/password_text_field.dart';

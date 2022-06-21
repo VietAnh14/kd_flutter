@@ -1,14 +1,14 @@
 import 'package:flutter_kd/services/remote/model/product.dart';
 
 class EditProductResponse {
-  int id;
+  int? id;
   String? image;
-  String price;
-  String productName;
-  String quantity;
-  String sku;
-  String status;
-  String unit;
+  String? price;
+  String? productName;
+  String? quantity;
+  String? sku;
+  String? status;
+  String? unit;
   bool? success;
   String? message;
   dynamic data;
@@ -44,13 +44,13 @@ class EditProductResponse {
 
   Product toProduct() {
     return Product(
-        id: id,
-        quantity: int.parse(quantity),
-        price: int.parse(price),
-        productName: productName,
-        sku: sku,
-        status: int.parse(status),
-        unit: unit
+        id: id!,
+        quantity: int.parse(quantity!),
+        price: int.parse(price!),
+        productName: productName!,
+        sku: sku!,
+        status: int.parse(status!),
+        unit: unit!
     );
   }
 }

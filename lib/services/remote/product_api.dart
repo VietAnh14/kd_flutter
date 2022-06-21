@@ -1,11 +1,11 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
+import 'package:flutter_kd/services/remote/AuthInterceptor.dart';
 import 'package:flutter_kd/services/remote/api_const.dart';
 import 'package:flutter_kd/services/remote/api_exception.dart';
 import 'package:flutter_kd/services/remote/model/add_product_request.dart';
 import 'package:flutter_kd/services/remote/model/edit_product_response.dart';
 import 'package:flutter_kd/services/remote/model/product.dart';
+import 'package:flutter_kd/utils/exception.dart';
 import 'package:flutter_kd/utils/network_utils.dart';
 import 'package:flutter_kd/utils/string_ext.dart';
 
@@ -36,13 +36,41 @@ class ProductApi {
     return token;
   }
 
+  bool isAuthError(DioError error) {
+    if (DioErrorType.response == error.type) {
+      final responseData = error.response?.data;
+      if (responseData != null && responseData is Map<String, dynamic>) {
+        final message = responseData['error'];
+        if (message == ApiConst.tokenExpiredMessage) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  Exception toDomainException(dynamic err, { String Function(String? response)? messageExtractor }) {
+    if (err is DioError) {
+      if (isAuthError(err)) {
+        return AuthorizationException();
+      } else {
+        return err.toNetworkError(messageExtractor);
+      }
+    } else if (err is NetworkError) {
+      return err;
+    } else {
+      return ParseException(innerException: err);
+    }
+  }
+
   Future<List<Product>> getProductList() async {
     try {
       final response = await _dio.get("api/items", options: getAuthOptions());
       final products = Product.fromJsonList(response.data);
       return products;
     } on DioError catch (e) {
-      throw e.toNetworkError(null);
+      throw toDomainException(e);
     }
   }
 
@@ -51,8 +79,8 @@ class ProductApi {
       final data = { "sku": sku };
       final response = await _dio.post("api/item/search", options: getAuthOptions(), data: data);
       return Product.fromJson(response.data);
-    } on DioError catch(e) {
-      throw e.toNetworkError(null);
+    } catch (err) {
+      throw toDomainException(err);
     }
   }
 
@@ -65,8 +93,22 @@ class ProductApi {
       }
 
       return responseData.toProduct();
-    } on DioError catch(e) {
-      throw e.toNetworkError(null);
+    } catch(e) {
+      throw toDomainException(e);
+    }
+  }
+
+  Future<Product> updateProduct(AddProductRequest request) async {
+    try {
+      final response = await _dio.post("api/item/update", options: getAuthOptions(), data: request.toJsonRequest());
+      final responseData = EditProductResponse.fromJson(response.data);
+      if (responseData.success == false) {
+        throw ApiException(code: 400, message: responseData.message);
+      }
+
+      return responseData.toProduct();
+    } catch(e) {
+      throw toDomainException(e);
     }
   }
 
@@ -76,14 +118,14 @@ class ProductApi {
         "sku": sku
       };
       final response = await _dio.post("api/item/delete", options: getAuthOptions(), data: data);
-      final responseData = EditProductResponse.fromJson(response.data);
-      if (responseData.success == false) {
-        throw ApiException(code: 400, message: responseData.message);
+      bool? success = response.data['success'];
+      if (success == false) {
+        throw ApiException(code: 400, message: response.data['message']);
       }
 
-      return responseData.toProduct();
-    } on DioError catch(e) {
-      throw e.toNetworkError(null);
+      return Product.fromJson(response.data);
+    } catch (err) {
+      throw toDomainException(err);
     }
   }
 }

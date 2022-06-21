@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
 
+import '../services/remote/api_const.dart';
 import '../services/remote/api_exception.dart';
 
 extension DioEx on DioError {
-  Exception toNetworkError(String Function(String? response)? messageExtractor) {
+
+  NetworkError toNetworkError(String Function(String? response)? messageExtractor) {
     if (type == DioErrorType.response) {
       if (response == null) {
         return ApiException.unknown();

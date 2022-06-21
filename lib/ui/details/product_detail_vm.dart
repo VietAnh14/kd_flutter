@@ -2,32 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_kd/services/remote/model/add_product_request.dart';
+import 'package:flutter_kd/services/remote/model/product.dart';
 import 'package:flutter_kd/services/remote/product_api.dart';
-import 'package:flutter_kd/ui/product_detail_event.dart';
+import 'package:flutter_kd/ui/base/base_vm.dart';
+import 'package:flutter_kd/ui/details/product_detail_event.dart';
 
-import '../services/remote/model/product.dart';
-
-class ProductDetailVM extends ChangeNotifier {
+class ProductDetailVM extends BaseVM {
   ProductApi _api;
   late Product product;
   bool isLoading = false;
   bool isValid = false;
-  late bool isEditing = false;
-  final _eventStream = StreamController<ProductDetailEvent>.broadcast();
-  Stream<ProductDetailEvent> get event => _eventStream.stream;
-  final _errorStream = StreamController<dynamic>.broadcast();
-  Stream<dynamic> get error => _errorStream.stream;
+  late bool isAdding = true;
 
   ProductDetailVM(this._api, Product? product) {
     this.product = product ?? Product.empty();
-    this.isEditing = product != null;
-  }
-
-  @override
-  void dispose() {
-    _eventStream.close();
-    _errorStream.close();
-    super.dispose();
+    this.isAdding = product == null;
   }
 
   void _validateProduct() {
@@ -86,23 +75,38 @@ class ProductDetailVM extends ChangeNotifier {
     }
   }
 
-
-  void addProduct() async {
-    try {
-      _setLoading(true);
-      final request = AddProductRequest.fromProduct(product);
-      await _api.addProduct(request);
-      _sendEvent(AddProductSuccessEvent());
-      _setLoading(false);
-    } catch (e, stack) {
-      print(stack);
-      _setLoading(false);
-      _errorStream.add(e);
+  void onActionClick() {
+    if (isAdding) {
+      addProduct();
+    } else {
+      updateProduct();
     }
   }
 
-  void _sendEvent(ProductDetailEvent event) {
-    _eventStream.add(event);
+  void updateProduct() {
+    safeCall(block: () async {
+      _setLoading(true);
+      final request = AddProductRequest.fromProduct(product);
+      final response = await _api.updateProduct(request);
+      sendEvent(ProductDetailEvent.updateProductSuccess());
+      _setLoading(false);
+    }, onError: sendError);
+  }
+
+  void addProduct() {
+    safeCall(block: () async {
+      _setLoading(true);
+      final request = AddProductRequest.fromProduct(product);
+      final response = await _api.addProduct(request);
+      sendEvent(ProductDetailEvent.addProductSuccess());
+      _setLoading(false);
+    }, onError: sendError);
+  }
+
+  @override
+  void sendError(error, stack) {
+    _setLoading(false);
+    super.sendError(error, stack);
   }
 
   void _setLoading(bool loading) {
