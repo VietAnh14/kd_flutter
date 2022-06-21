@@ -25,8 +25,8 @@ class KdApp extends StatelessWidget {
         Provider(create: (context) => ProductApi(context.read())),
       ],
       child: MaterialApp(
-        initialRoute: ProductListScreen.routeName,
-        routes: appRouter,
+        initialRoute: LoginScreen.routeName,
+        onGenerateRoute: generateRoute,
       ),
     );
   }

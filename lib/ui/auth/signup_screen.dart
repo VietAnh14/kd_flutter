@@ -12,6 +12,10 @@ class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
 
   static const routName = "/signUp";
+  static Widget buildScreen(BuildContext context) => ChangeNotifierProvider(
+    create: (_) => AuthViewModel(context.read(), context.read()),
+    child: const SignUpScreen(),
+  );
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();

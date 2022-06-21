@@ -32,3 +32,18 @@ Map<String, Widget Function(BuildContext)> appRouter = {
     child: ProductDetailScreen(),
   )
 };
+
+Route<dynamic> generateRoute(RouteSettings settings) {
+  switch (settings.name) {
+    case LoginScreen.routeName:
+      return MaterialPageRoute(builder: LoginScreen.buildScreen);
+    case SignUpScreen.routName:
+      return MaterialPageRoute(builder: SignUpScreen.buildScreen);
+    case ProductListScreen.routeName:
+      return MaterialPageRoute(builder: ProductListScreen.buildScreen);
+    case ProductDetailScreen.routeName:
+      return MaterialPageRoute(builder: (context) => ProductDetailScreen.buildScreen(context, settings));
+    default:
+      return MaterialPageRoute(builder: LoginScreen.buildScreen);
+  }
+}

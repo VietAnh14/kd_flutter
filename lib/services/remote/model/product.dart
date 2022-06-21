@@ -4,7 +4,7 @@ import 'dart:convert';
 class Product {
   int id;
   String? image;
-  double price;
+  int price;
   String productName;
   int quantity;
   String sku;

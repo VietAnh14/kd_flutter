@@ -13,6 +13,10 @@ import '../auth/auth_view_model.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
+  static Widget buildScreen(BuildContext context) => ChangeNotifierProvider(
+    create: (_) => AuthViewModel(context.read(), context.read()),
+    child: const LoginScreen(),
+  );
 
   const LoginScreen({Key? key}) : super(key: key);
 

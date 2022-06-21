@@ -95,6 +95,10 @@ class _SearchAppBarState extends State<SearchAppBar> {
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({Key? key}) : super(key: key);
   static const routeName = "/products";
+  static Widget buildScreen(BuildContext context) => ChangeNotifierProvider(
+    create: (_) => ProductVM(context.read()),
+    child: const ProductListScreen(),
+  );
 
   @override
   State<ProductListScreen> createState() => _ProductListScreenState();
@@ -146,35 +150,38 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Widget _buildItemRow(BuildContext context, int index) {
     final product = productVM.products[index];
-    return Container(
-      decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.black54))
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              alignment: Alignment.center,
-              child: Text(product.sku),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              alignment: Alignment.center,
-              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 16),
-              decoration: const BoxDecoration(
-                  border: Border.symmetric(vertical: BorderSide(color: Colors.black54))
+    return GestureDetector(
+      onLongPress: () => productVM.deleteProduct(product.sku),
+      child: Container(
+        decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.black54))
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Container(
+                alignment: Alignment.center,
+                child: Text(product.sku),
               ),
-              child: Text(product.productName),
             ),
-          ),
-          Expanded(
-            child: Container(
-              alignment: Alignment.center,
-              child: Text(product.quantity.toString()),
+            Expanded(
+              child: Container(
+                alignment: Alignment.center,
+                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+                decoration: const BoxDecoration(
+                    border: Border.symmetric(vertical: BorderSide(color: Colors.black54))
+                ),
+                child: Text(product.productName),
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              child: Container(
+                alignment: Alignment.center,
+                child: Text(product.quantity.toString()),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

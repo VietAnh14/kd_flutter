@@ -48,6 +48,18 @@ class ProductVM extends ChangeNotifier {
     }
   }
 
+  void deleteProduct(String sku) async {
+    try {
+      _setIsLoading(true);
+      final product = await api.deleteProduct(sku);
+      products.removeWhere((element) => element.sku == product.sku);
+      _setIsLoading(false);
+    } catch (err, stack) {
+      _setIsLoading(false);
+      print(stack);
+    }
+  }
+
   @override
   void notifyListeners() {
     if (!isDispose) {

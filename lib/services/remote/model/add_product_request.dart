@@ -5,7 +5,7 @@ class AddProductRequest {
   final String sku;
   final String productName;
   final int qty;
-  final double price;
+  final int price;
   final String unit;
   final int status;
 

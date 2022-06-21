@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_kd/services/remote/api_const.dart';
 import 'package:flutter_kd/services/remote/api_exception.dart';
 import 'package:flutter_kd/services/remote/model/add_product_request.dart';
+import 'package:flutter_kd/services/remote/model/edit_product_response.dart';
 import 'package:flutter_kd/services/remote/model/product.dart';
 import 'package:flutter_kd/utils/network_utils.dart';
 import 'package:flutter_kd/utils/string_ext.dart';
@@ -55,8 +58,30 @@ class ProductApi {
 
   Future<Product> addProduct(AddProductRequest request) async {
     try {
-      final response = await _dio.post("api/item/search", options: getAuthOptions(), data: request.toJsonRequest());
-      return Product.fromJson(response.data);
+      final response = await _dio.post("api/item/add", options: getAuthOptions(), data: request.toJsonRequest());
+      final responseData = EditProductResponse.fromJson(response.data);
+      if (responseData.success == false) {
+        throw ApiException(code: 400, message: responseData.message);
+      }
+
+      return responseData.toProduct();
+    } on DioError catch(e) {
+      throw e.toNetworkError(null);
+    }
+  }
+
+  Future<Product> deleteProduct(String sku) async {
+    try {
+      final data = {
+        "sku": sku
+      };
+      final response = await _dio.post("api/item/delete", options: getAuthOptions(), data: data);
+      final responseData = EditProductResponse.fromJson(response.data);
+      if (responseData.success == false) {
+        throw ApiException(code: 400, message: responseData.message);
+      }
+
+      return responseData.toProduct();
     } on DioError catch(e) {
       throw e.toNetworkError(null);
     }
